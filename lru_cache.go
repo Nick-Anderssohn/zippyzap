@@ -1,7 +1,5 @@
 package zippyzap
 
-import "time"
-
 // LRUCache is a least-recently-used cache.
 // It is safe for use by multiple goroutines
 // concurrently. It accomplishes this without
@@ -157,7 +155,10 @@ func (l *LRUCache) put(op operation) result {
 	if l.ContainsKey(op.key) {
 		return l.update(op)
 	} else {
-		nNode := newNode(op.key, op.val)
+		nNode := &node{
+			key: op.key,
+			val: op.val,
+		}
 
 		l.insert(nNode)
 
@@ -175,17 +176,9 @@ func (l *LRUCache) update(op operation) result {
 	// update its value
 	existing.target.val = op.val
 
-	l.reinsert(existing.target)
+	l.insert(existing.target)
 
 	return existing
-}
-
-func (l *LRUCache) reinsert(target *node) {
-	// update its timestamp
-	target.timestamp = time.Now()
-
-	// put it back into the doubly linked list
-	l.insert(target)
 }
 
 func (l *LRUCache) get(op operation) result {
@@ -197,7 +190,7 @@ func (l *LRUCache) get(op operation) result {
 	// spot in linked list
 	existing := l.lookupMap[op.key]
 	l.removeNode(existing)
-	l.reinsert(existing)
+	l.insert(existing)
 
 	return result{
 		found:  true,
@@ -227,7 +220,7 @@ func (l *LRUCache) insert(target *node) {
 }
 
 func (l *LRUCache) remove(op operation) result {
-	// Try to find the node based off of key
+	// Try to find the simpleNode based off of key
 	getResult := l.get(op)
 
 	if !getResult.found {

@@ -10,21 +10,20 @@ See lru_cache_test.go. These were the results on my 2017 macbook pro:
 goos: darwin
 goarch: amd64
 pkg: github.com/Nick-Anderssohn/zippyzap
-BenchmarkLRU_Rand-8   	  475728	      2340 ns/op
+BenchmarkLRU_Rand-8   	  536053	      2103 ns/op
 --- BENCH: BenchmarkLRU_Rand-8
     lru_cache_test.go:110: hit: 0 miss: 1 ratio: 0.000000
-    lru_cache_test.go:110: hit: 1 miss: 99 ratio: 0.010101
-    lru_cache_test.go:110: hit: 1394 miss: 8606 ratio: 0.161980
-    lru_cache_test.go:110: hit: 117195 miss: 358533 ratio: 0.326874
-BenchmarkLRU_Freq-8   	  499816	      2306 ns/op
+    lru_cache_test.go:110: hit: 0 miss: 100 ratio: 0.000000
+    lru_cache_test.go:110: hit: 1420 miss: 8580 ratio: 0.165501
+    lru_cache_test.go:110: hit: 132399 miss: 403654 ratio: 0.328001
+BenchmarkLRU_Freq-8   	  566115	      2040 ns/op
 --- BENCH: BenchmarkLRU_Freq-8
     lru_cache_test.go:143: hit: 1 miss: 0 ratio: +Inf
     lru_cache_test.go:143: hit: 100 miss: 0 ratio: +Inf
-    lru_cache_test.go:143: hit: 9935 miss: 65 ratio: 152.846154
-    lru_cache_test.go:143: hit: 159171 miss: 340645 ratio: 0.467264
+    lru_cache_test.go:143: hit: 9808 miss: 192 ratio: 51.083333
+    lru_cache_test.go:143: hit: 178565 miss: 387550 ratio: 0.460753
 PASS
-ok  	github.com/Nick-Anderssohn/zippyzap	2.552s
-
+ok  	github.com/Nick-Anderssohn/zippyzap	2.460s
 ```
 These are the results using [hashicorp's LRU lib](https://github.com/hashicorp/golang-lru)
 instead of this lib. They use a normal impl with locks instead of chans:
