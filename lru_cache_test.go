@@ -1,10 +1,16 @@
 package zippyzap
 
 import (
+	"math/rand"
 	"testing"
+	"time"
 )
 
 import "github.com/stretchr/testify/require"
+
+func init() {
+	rand.Seed(time.Now().Unix())
+}
 
 func TestLRUCache_CRUD(t *testing.T) {
 	cache := CreateAndStartLRUCache(2)
@@ -73,65 +79,136 @@ func TestLRUCache_CRUD(t *testing.T) {
 	require.False(t, cache.ContainsKey(testKey3))
 }
 
-func BenchmarkLRUCache_Put_SameInput(b *testing.B) {
-	cache := CreateAndStartLRUCache(1)
+// The following benchmarks mirror the benchmarks
+// written by hashicorp so that the 2 libs can be
+// compared. Their benchmarks can be found here:
+// https://github.com/hashicorp/golang-lru/blob/80c98217689d6df152309d574ccc682b21dc802c/lru_test.go
 
-	defer cache.Shutdown()
+func BenchmarkLRU_Rand(b *testing.B) {
+	l := CreateAndStartLRUCache(8192)
 
-	cache.Put("key", "val")
-
-	b.ResetTimer()
-
-	for i := 0; i < b.N; i++ {
-		cache.Put("key", "val")
-	}
-}
-
-func BenchmarkLRUCache_Put_RandomInput(b *testing.B) {
-	cache := CreateAndStartLRUCache(1)
-
-	defer cache.Shutdown()
-
-	for i := 0; i < b.N; i++ {
-		cache.Put(i, "val")
+	trace := make([]int64, b.N*2)
+	for i := 0; i < b.N*2; i++ {
+		trace[i] = rand.Int63() % 32768
 	}
 
 	b.ResetTimer()
 
-	for i := 0; i < b.N; i++ {
-		cache.Put(i, "val")
+	var hit, miss int
+	for i := 0; i < 2*b.N; i++ {
+		if i%2 == 0 {
+			l.Put(trace[i], trace[i])
+		} else {
+			_, ok := l.Get(trace[i])
+			if ok {
+				hit++
+			} else {
+				miss++
+			}
+		}
 	}
+	b.Logf("hit: %d miss: %d ratio: %f", hit, miss, float64(hit)/float64(miss))
+
+	b.StopTimer()
+	l.Shutdown()
+	b.StartTimer()
 }
 
-func BenchmarkLRUCache_Put_500_Concurrent(b *testing.B) {
-	cache := CreateAndStartLRUCache(1)
+func BenchmarkLRU_Freq(b *testing.B) {
+	l := CreateAndStartLRUCache(8192)
 
-	defer cache.Shutdown()
-
-	var notify = make(chan bool, 500)
-
-	for i := 0; i < b.N; i++ {
-		put500(cache, notify)
+	trace := make([]int64, b.N*2)
+	for i := 0; i < b.N*2; i++ {
+		if i%2 == 0 {
+			trace[i] = rand.Int63() % 16384
+		} else {
+			trace[i] = rand.Int63() % 32768
+		}
 	}
 
 	b.ResetTimer()
 
 	for i := 0; i < b.N; i++ {
-		put500(cache, notify)
+		l.Put(trace[i], trace[i])
 	}
+	var hit, miss int
+	for i := 0; i < b.N; i++ {
+		_, ok := l.Get(trace[i])
+		if ok {
+			hit++
+		} else {
+			miss++
+		}
+	}
+	b.Logf("hit: %d miss: %d ratio: %f", hit, miss, float64(hit)/float64(miss))
+
+	b.StopTimer()
+	l.Shutdown()
+	b.StartTimer()
 }
 
-func put500(cache *LRUCache, notify chan bool) {
-	for i := 0; i < 500; i++ {
-		go putAsync(cache, i, notify)
-	}
+// Original benchmarks seen below, replaced with benchmarks
+// that mirror what hashicorp does (seen above).
 
-	for i := 0; i < 500; i++ {
-		<-notify
-	}
-}
-
-func putAsync(cache *LRUCache, key int, notify chan bool) {
-	cache.Put(key, "val")
-	notify <- true
-}
+//func BenchmarkLRUCache_Put_SameInput(b *testing.B) {
+//	cache := CreateAndStartLRUCache(1)
+//
+//	defer cache.Shutdown()
+//
+//	cache.Put("key", "val")
+//
+//	b.ResetTimer()
+//
+//	for i := 0; i < b.N; i++ {
+//		cache.Put("key", "val")
+//	}
+//}
+//
+//func BenchmarkLRUCache_Put_RandomInput(b *testing.B) {
+//	cache := CreateAndStartLRUCache(1)
+//
+//	defer cache.Shutdown()
+//
+//	for i := 0; i < b.N; i++ {
+//		cache.Put(i, "val")
+//	}
+//
+//	b.ResetTimer()
+//
+//	for i := 0; i < b.N; i++ {
+//		cache.Put(i, "val")
+//	}
+//}
+//
+//func BenchmarkLRUCache_Put_500_Concurrent(b *testing.B) {
+//	cache := CreateAndStartLRUCache(1)
+//
+//	defer cache.Shutdown()
+//
+//	var notify = make(chan bool, 500)
+//
+//	for i := 0; i < b.N; i++ {
+//		put500(cache, notify)
+//	}
+//
+//	b.ResetTimer()
+//
+//	for i := 0; i < b.N; i++ {
+//		put500(cache, notify)
+//	}
+//}
+//
+//func put500(cache *LRUCache, notify chan bool) {
+//	for i := 0; i < 500; i++ {
+//		go putAsync(cache, i, notify)
+//	}
+//
+//	for i := 0; i < 500; i++ {
+//		<-notify
+//	}
+//}
+//
+//func putAsync(cache *LRUCache, key int, notify chan bool) {
+//	cache.Put(key, "val")
+//	notify <- true
+//}
