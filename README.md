@@ -55,7 +55,7 @@ faster in a concurrent situation too, but I want to write a benchmark for that s
 as well.
 
 ## Should I use this in a production service?
-Probably not. Given the above results, looks like a traditional implementation using
+No. Given the above results, a traditional implementation using
 locks gives you better perf. I would like to test hitting the cache concurrently
 though. I doubt the results would be any different, but I'm still curious.
 
