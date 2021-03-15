@@ -1,6 +1,8 @@
 package zippyzap
 
-import "testing"
+import (
+	"testing"
+)
 
 import "github.com/stretchr/testify/require"
 
@@ -69,4 +71,24 @@ func TestLRUCache_CRUD(t *testing.T) {
 	cache.Remove(testKey3)
 	require.Equal(t, 1, cache.Size())
 	require.False(t, cache.ContainsKey(testKey3))
+}
+
+func BenchmarkLRUCache_Put_SameInput(b *testing.B) {
+	cache := CreateAndStartLRUCache(1)
+
+	defer cache.Shutdown()
+
+	for i := 0; i < b.N; i++ {
+		cache.Put("key", "val")
+	}
+}
+
+func BenchmarkLRUCache_Put_RandomInput(b *testing.B) {
+	cache := CreateAndStartLRUCache(1)
+
+	defer cache.Shutdown()
+
+	for i := 0; i < b.N; i++ {
+		cache.Put(i, "val")
+	}
 }
