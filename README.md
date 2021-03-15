@@ -1,7 +1,8 @@
 # Zippy Zap LRU Cache
 An LRU cache for go. It is safe for use by multiple goroutines concurrently.
 It accomplishes this without any locks. Instead, it uses a background goroutine
-with chans.
+with chans. Is this a good thing? Not really, but it made for a fun little
+comparison :)
 
 ## Benchmarks
 See lru_cache_test.go. These were the results on my 2017 macbook pro:
