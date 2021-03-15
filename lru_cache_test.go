@@ -78,6 +78,10 @@ func BenchmarkLRUCache_Put_SameInput(b *testing.B) {
 
 	defer cache.Shutdown()
 
+	cache.Put("key", "val")
+
+	b.ResetTimer()
+
 	for i := 0; i < b.N; i++ {
 		cache.Put("key", "val")
 	}
@@ -91,6 +95,12 @@ func BenchmarkLRUCache_Put_RandomInput(b *testing.B) {
 	for i := 0; i < b.N; i++ {
 		cache.Put(i, "val")
 	}
+
+	b.ResetTimer()
+
+	for i := 0; i < b.N; i++ {
+		cache.Put(i, "val")
+	}
 }
 
 func BenchmarkLRUCache_Put_500_Concurrent(b *testing.B) {
@@ -98,20 +108,26 @@ func BenchmarkLRUCache_Put_500_Concurrent(b *testing.B) {
 
 	defer cache.Shutdown()
 
+	var notify = make(chan bool, 500)
+
 	for i := 0; i < b.N; i++ {
-		put500(cache)
+		put500(cache, notify)
+	}
+
+	b.ResetTimer()
+
+	for i := 0; i < b.N; i++ {
+		put500(cache, notify)
 	}
 }
 
-var put500Chan = make(chan bool, 500)
-
-func put500(cache *LRUCache) {
+func put500(cache *LRUCache, notify chan bool) {
 	for i := 0; i < 500; i++ {
-		go putAsync(cache, i, put500Chan)
+		go putAsync(cache, i, notify)
 	}
 
 	for i := 0; i < 500; i++ {
-		<-put500Chan
+		<-notify
 	}
 }
 

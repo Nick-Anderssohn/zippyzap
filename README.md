@@ -9,11 +9,11 @@ See lru_cache_test.go. These were the results on my 2017 macbook pro
 goos: darwin
 goarch: amd64
 pkg: github.com/Nick-Anderssohn/zippyzap
-BenchmarkLRUCache_Put_SameInput-8        	  908406	      1341 ns/op
-BenchmarkLRUCache_Put_RandomInput-8      	 1000000	      1076 ns/op
-BenchmarkLRUCache_Put_500_Concurrent-8   	    1410	    820978 ns/op
+BenchmarkLRUCache_Put_SameInput-8        	  876780	      1376 ns/op
+BenchmarkLRUCache_Put_RandomInput-8      	 1000000	      1070 ns/op
+BenchmarkLRUCache_Put_500_Concurrent-8   	    1459	    821276 ns/op
 PASS
-ok  	github.com/Nick-Anderssohn/zippyzap	3.797s
+ok  	github.com/Nick-Anderssohn/zippyzap	6.261s
 ```
 Planning on writing these same benchmarks for
 [hashicorp's LRU lib](https://github.com/hashicorp/golang-lru). I'll
